@@ -4,8 +4,8 @@
   "author": "ISW",
   "description": "common scripts for kudos microservices",
   "bin": {
-    "deps": "./build.deps",
-    "updeps": "./git-deps.update",
-    "migrate": "./git-deps.migrate"
+    "deps": "./build.deps.js",
+    "updeps": "./git-deps.update.js",
+    "migrate": "./git-deps.migrate.js"
   }
 }
