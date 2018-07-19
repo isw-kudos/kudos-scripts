@@ -12,8 +12,8 @@ function migrateGitDeps(deps) {
     const uninstall = `npm uninstall -s ${name}`;
     return getCommitUpdate(url).then(newCommit => {
       const newName = name+'-exports';
-      const install = npmInstallCmd(url.replace(name, newName), newCommit);
-      console.log(`Going to migrate ${name}...`); 
+      const install = npmInstallCmd(url.replace(name, newName), newCommit, name);
+      console.log(`Going to migrate ${name}...`);
       return [uninstall, install];
     });
   }))

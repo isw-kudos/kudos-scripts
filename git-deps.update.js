@@ -33,7 +33,7 @@ function checkForUpdates(deps, name = '') {
  */
 function processUpdates(updates) {
   return executeInSeries(updates.map(
-    ({name, url, commit}) => npmInstallCmd(url, commit)
+    ({url, commit}) => npmInstallCmd(url, commit)
   ));
 }
 

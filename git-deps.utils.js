@@ -16,9 +16,10 @@ function mapGitDeps(deps, fn) {
   }).filter(d => !!d);
 }
 
-function npmInstallCmd(url, commit) {
+function npmInstallCmd(url, commit, name) {
   commit = commit ? '#'+commit : '';
-  return `npm install -s git+${url}${commit}`;
+  name = name ? name+'@' : '';
+  return `npm install -s ${name}git+${url}${commit}`;
 }
 
 

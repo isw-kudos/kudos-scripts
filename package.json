@@ -7,6 +7,5 @@
     "deps": "./build.deps.js",
     "updeps": "./git-deps.update.js",
     "migrate": "./git-deps.migrate.js"
-  },
-  "dependencies": {}
+  }
 }
