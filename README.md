@@ -1,2 +1,0 @@
-# kudos-scripts
-Common scripts

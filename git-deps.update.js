@@ -15,14 +15,11 @@ return checkForUpdates(pckg.dependencies, pckg.name).then(processUpdates).then(l
  */
 function checkForUpdates(deps, name = '') {
   console.log(`Checking for git dependency updates in '${name}'...`);
-  return Promise.all(Object.keys(deps).map(name => {
-    const version = deps[name];
-    const [url, oldCommit] = parseVersion(version);
-    if(!url) return Promise.resolve();
-    return getCommitUpdate(url, oldCommit)
-    .then(commit => commit ? {name, url, commit} : null)
+  return Promise.all(mapGitDeps(deps,
+    (name, url, commit) => getCommitUpdate(url, oldCommit)
+    .then(update => update && {name, url, update})
     .catch(err => console.error(`Error getting latest commitId for ${name}`, err));
-  }))
+  ))
   .then(updates => {
     updates = updates.filter(u => !!u);
     console.log(`Found ${updates.length} update(s)`);
@@ -37,18 +34,22 @@ function checkForUpdates(deps, name = '') {
  * @return Promise that resolves to results array with [success, total]
  */
 function processUpdates(updates) {
-  //execute commands in series
-  return updates.reduce((prev, update) => {
-    const {name, url, commit} = update;
-    return prev.then(results => {
-      console.log(`Updating '${name}' to commit ${commit}`);
-      return execute(npmStr(name, url, commit))
-      .then(() => !!(results[0] += 1) && results) //update success number
-      .catch(() => results);
-    });
-  }, Promise.resolve([0, updates.length]));
+  return executeInSeries(updates.map(
+    ({name, url, commit}) => npmInstallCmd(name, url, commit)
+  ));
 }
 
+
+//execute commands in series
+export function executeInSeries(cmds) {
+  return cmds.reduce(
+    (prev, cmd) => prev.then(results => execute(cmd)
+      .catch(() => results[0]-=1) //subtract success number
+      .then(() => results)
+    ),
+    Promise.resolve([cmds.length, cmds.length])
+  );
+}
 
 function logResults([success, total]) {
   if(total) {
@@ -59,6 +60,13 @@ function logResults([success, total]) {
   console.log('\n');
 }
 
+export function mapGitDeps(deps, fn) {
+  return Object.keys(deps).map(name => {
+    const version = deps[name];
+    const [url, commit] = parseVersion(version);
+    return url ? fn(name, url, commit) : null
+  }).filter(d => !!d);
+}
 
 /**
  * Checks if str is a hosted git repo and ensures url is separated from commit hash
@@ -81,7 +89,7 @@ function parseVersion(version) {
  * @param commit
  * @return Promise that resolves to commitId if there is a newer one or null
  */
-function getCommitUpdate(url, commit) {
+export function getCommitUpdate(url, commit) {
   return execute(`git ls-remote ${url} HEAD`)
   .then(output => {
     const words = output.split(/\s/);
@@ -94,8 +102,9 @@ function getCommitUpdate(url, commit) {
   });
 }
 
-function npmStr(name, url, commitId) {
-  return `npm i -s git+${url}#${commitId}`;
+export function npmInstallCmd(name, url, commit, uninstall) {
+  if(uninstall) return `npm uninstall -s ${name}`;
+  return `npm install -s git+${url}${commit ? '#'+commit : ''}`;
 }
 
 function execute(cmd) {

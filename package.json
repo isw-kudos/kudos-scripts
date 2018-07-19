@@ -2,5 +2,10 @@
   "name": "kudos-scripts",
   "version": "1.0.0",
   "author": "ISW",
-  "description": "common scripts"
+  "description": "common scripts for kudos microservices",
+  "scripts": {
+    "deps": "node build.deps",
+    "updeps": "node git-deps.update",
+    "migrate": "node git-deps.migrate"
+  }
 }
