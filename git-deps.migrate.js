@@ -1,22 +1,24 @@
-import {mapGitDeps, npmInstallCmd, executeInSeries, getCommitUpdate} from './git-deps.update';
-const path = require('path');
+#!/usr/bin/env node
 
+const {mapGitDeps, npmInstallCmd, executeInSeries, getCommitUpdate} = require('./git-deps.utils');
+const path = require('path');
 const pckg = require(path.resolve('package.json'));
 
-migrateGitDeps(pckg.dependencies).then()
+migrateGitDeps(pckg.dependencies);
 
 function migrateGitDeps(deps) {
   return Promise.all(mapGitDeps(deps, (name, url, commit) => {
     if(name.split('-').pop()!=='service') return Promise.resolve();
-    const uninstall = npmInstallCmd(name, url, null, true);
+    const uninstall = `npm uninstall -s ${name}`;
     return getCommitUpdate(url).then(newCommit => {
-      const install = npmInstallCmd(name+'-exports', url+'-exports', newCommit);
+      const newName = name+'-exports';
+      const install = npmInstallCmd(url.replace(name, newName), newCommit);
       return [`echo "Migrating ${name}..."`, uninstall, install];
     });
   }))
   .then(cmds => {
     cmds = cmds.filter(c => !!c);
-    cmds = cmds.flat();
+    cmds = cmds.reduce((acc, val) => acc.concat(val), []); //flatten
     return executeInSeries(cmds);
   });
 }

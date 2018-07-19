@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* eslint import/no-commonjs: 0, no-console: 0 */
 const {exec} = require('child_process');
 const os = require('os');
