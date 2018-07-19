@@ -48,12 +48,7 @@ function getKudosFoldersIn(folder) {
 }
 
 function getBuildPath(app) {
-  switch(app) {
-    case 'kudos-common':
-      return '/dist';
-    default:
-      return '/exports/dist';
-  }
+  return '/dist';
 }
 
 function getKudosDependenciesIn(app) {
