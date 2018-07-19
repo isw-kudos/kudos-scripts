@@ -13,12 +13,13 @@ function migrateGitDeps(deps) {
     return getCommitUpdate(url).then(newCommit => {
       const newName = name+'-exports';
       const install = npmInstallCmd(url.replace(name, newName), newCommit);
-      return [`echo "Migrating ${name}..."`, uninstall, install];
+      console.log(`Going to migrate ${name}...`); 
+      return [uninstall, install];
     });
   }))
   .then(cmds => {
     cmds = cmds.filter(c => !!c);
     cmds = cmds.reduce((acc, val) => acc.concat(val), []); //flatten
-    return executeInSeries(cmds);
+    return executeInSeries(cmds, true);
   });
 }

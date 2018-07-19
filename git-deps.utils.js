@@ -22,19 +22,20 @@ function npmInstallCmd(url, commit) {
 }
 
 
-function execute(cmd) {
-  return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) =>
-      error ?
-        console.log(error, stderr) || reject(error) :
-        (console.log(cmd) || console.log(stdout) || resolve(stdout)));
-  });
+function execute(cmd, verbose) {
+  return new Promise((resolve, reject) =>
+    exec(cmd, (error, stdout, stderr) => {
+      if(error) return console.log(error, stderr) || reject(error);
+      if(verbose) console.log(cmd) || console.log(stdout);
+      return resolve(stdout);
+    })
+  );
 }
 
 //execute commands in series
-function executeInSeries(cmds) {
+function executeInSeries(cmds, verbose) {
   return cmds.reduce(
-    (prev, cmd) => prev.then(results => execute(cmd)
+    (prev, cmd) => prev.then(results => execute(cmd, verbose)
       .catch(() => results[0]-=1) //subtract success number
       .then(() => results)
     ),
