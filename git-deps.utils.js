@@ -16,14 +16,14 @@ function mapGitDeps(deps, fn) {
   }).filter(d => !!d);
 }
 
-function npmInstallCmd(url, commit, name) {
+function npmInstallCmd(url, commit) {
   commit = commit ? '#'+commit : '';
-  name = name ? name+'@' : '';
-  return `npm install -s ${name}git+${url}${commit}`;
+  return `npm install -s git+${url}${commit}`;
 }
 
 
-function execute(cmd, verbose) {
+function execute(cmd) {
+  const verbose = process.env.VERBOSE
   return new Promise((resolve, reject) =>
     exec(cmd, (error, stdout, stderr) => {
       if(error) return console.log(error, stderr) || reject(error);
@@ -34,10 +34,10 @@ function execute(cmd, verbose) {
 }
 
 //execute commands in series
-function executeInSeries(cmds, verbose) {
+function executeInSeries(cmds, failOnErr) {
   return cmds.reduce(
-    (prev, cmd) => prev.then(results => execute(cmd, verbose)
-      .catch(() => results[0]-=1) //subtract success number
+    (prev, cmd) => prev.then(results => execute(cmd)
+      .catch((err) => failOnErr ? Promise.reject(err) : results[0]-=1) //subtract success number
       .then(() => results)
     ),
     Promise.resolve([cmds.length, cmds.length])

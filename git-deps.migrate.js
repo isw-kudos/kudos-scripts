@@ -1,20 +1,26 @@
 #!/usr/bin/env node
 
-const {mapGitDeps, npmInstallCmd, executeInSeries, getCommitUpdate} = require('./git-deps.utils');
+const {mapGitDeps, npmInstallCmd, executeInSeries, getCommitUpdate, logResults} = require('./git-deps.utils');
 const path = require('path');
 const pckg = require(path.resolve('package.json'));
 
-migrateGitDeps(pckg.dependencies);
+migrateGitDeps(pckg.dependencies)
+.then(([success, total]) => total && (total!==success ? console.log(`Error migrating!`) :
+  console.log(`
+Successfully migrated ${total/2} packages!
+Please commit package.json
+Please replace all references to \'kudos\-([a-z]+)\-service/exports\' to \'kudos-$1-service-exports\' in your src
+  `)));
 
 function migrateGitDeps(deps) {
-  return Promise.all(mapGitDeps(deps, (name, url, commit) => {
+  return Promise.all(mapGitDeps(deps, (name, url) => {
     if(name.split('-').pop()!=='service') return Promise.resolve();
     const uninstall = `npm uninstall -s ${name}`;
-    return getCommitUpdate(url).then(newCommit => {
-      const newName = name+'-exports';
-      const install = npmInstallCmd(url.replace(name, newName), newCommit, name);
+    const newUrl = url.replace(name, name+'-exports');
+    return getCommitUpdate(newUrl).then(newCommit => {
+      const install = npmInstallCmd(newUrl, newCommit);
       console.log(`Going to migrate ${name}...`);
-      return [uninstall, install];
+      return [install, uninstall];
     });
   }))
   .then(cmds => {

@@ -15,8 +15,8 @@ return checkForUpdates(pckg.dependencies, pckg.name).then(processUpdates).then(l
 function checkForUpdates(deps, name = '') {
   console.log(`Checking for git dependency updates in '${name}'...`);
   return Promise.all(mapGitDeps(deps,
-    (name, url, commit) => getCommitUpdate(url, commit)
-    .then(newCommit => newCommit && {name, url, newCommit})
+    (name, url, oldCommit) => getCommitUpdate(url, oldCommit)
+    .then(commit => commit && {name, url, commit})
     .catch(err => console.error(`Error getting latest commitId for ${name}`, err))
   ))
   .then(updates => {

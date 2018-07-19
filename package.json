@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "author": "ISW",
   "description": "common scripts for kudos microservices",
+  "repository": "git@github.com:isw-kudos/kudos-scripts.git",
+  "license": "Private",
+  "private": true,
   "bin": {
     "deps": "./build.deps.js",
     "updeps": "./git-deps.update.js",
